@@ -1,0 +1,124 @@
+---
+title: "Phone Number"
+description: "Validate Iranian mobile numbers, normalize between `0...` and `+98...` formats, and look up operator + province coverage."
+icon: "phone"
+---
+
+Validate Iranian mobile numbers, switch between `0` and `+98` formats, and detect the carrier (همراه اول, ایرانسل, …) plus province coverage from the 3-digit operator prefix.
+
+> This module validates **mobile** numbers only. Landline validation is not supported.
+
+## Functions
+
+### `isPhoneNumberValid(mobile)`
+
+```ts
+import { isPhoneNumberValid } from "@persian-tools/persian-tools";
+
+isPhoneNumberValid("09123456789"); // true
+isPhoneNumberValid("+989123456789"); // true
+isPhoneNumberValid("989123456789"); // true
+isPhoneNumberValid("00989123456789"); // true
+isPhoneNumberValid("9123456789"); // true (bare)
+isPhoneNumberValid("0212345678"); // false (landline, not mobile)
+isPhoneNumberValid("09000000000"); // false (unassigned prefix)
+```
+
+Internally checks `/^(\+98|98|0098|0)?9(\d{2})\d{7}$/` **and** confirms the 3-digit operator prefix is in the known list.
+
+> The exported name is `isPhoneNumberValid`. There is no `validatePhoneNumber`.
+
+### `phoneNumberNormalizer(phoneNumber, token)`
+
+Convert between `0` and `+98` representations. **Throws** on invalid input.
+
+```ts
+import { phoneNumberNormalizer } from "@persian-tools/persian-tools";
+
+phoneNumberNormalizer("+989022002580", "0"); // "09022002580"
+phoneNumberNormalizer("09022002580", "+98"); // "+989022002580"
+phoneNumberNormalizer("989022002580", "0"); // "09022002580"
+
+phoneNumberNormalizer("invalid", "0"); // throws Error("phone number is not valid")
+```
+
+`token` is exactly `"0" | "+98"` — no other formats.
+
+### `phoneNumberDetail(mobile)`
+
+Look up operator + province coverage by the 3-digit operator prefix.
+
+```ts
+import { phoneNumberDetail } from "@persian-tools/persian-tools";
+
+phoneNumberDetail("09123456789");
+// {
+//   province: ["البرز", "تهران", ...],
+//   base: "تهران",
+//   type: ["permanent"],
+//   operator: { id: 1, name: "همراه اول", ... },
+// }
+
+phoneNumberDetail("09000000000"); // null  (prefix not assigned)
+```
+
+Returns `OperatorModel | null`. The operator name is `result.operator.name` — the function does not return a bare string.
+
+> There is no `getPhoneOperator` function. Use `phoneNumberDetail(...)?.operator?.name` if you want just the name.
+
+### `getPhoneNumberPrefix(mobile)`
+
+Returns the 4-digit prefix (including the leading `9`):
+
+```ts
+import { getPhoneNumberPrefix } from "@persian-tools/persian-tools";
+
+getPhoneNumberPrefix("09123456789"); // "0912"
+```
+
+Useful for grouping numbers in reports.
+
+## Types
+
+```ts
+interface OperatorModel {
+	province: string[];
+	base: string;
+	type: ("permanent" | "credit")[];
+	operator: { id: number; name: string /* ... */ };
+	model?: string;
+}
+```
+
+## Recommended pipeline
+
+```ts
+import {
+	autoConvertDigitsToEN,
+	isPhoneNumberValid,
+	phoneNumberNormalizer,
+	phoneNumberDetail,
+} from "@persian-tools/persian-tools";
+
+function processPhone(raw: string) {
+	const norm = autoConvertDigitsToEN(raw.trim());
+	if (!isPhoneNumberValid(norm)) return { ok: false as const };
+	return {
+		ok: true as const,
+		e164: phoneNumberNormalizer(norm, "+98"),
+		local: phoneNumberNormalizer(norm, "0"),
+		detail: phoneNumberDetail(norm),
+	};
+}
+```
+
+## Pitfalls
+
+- **Mobile only.** Landlines (`021...`, `031...`, …) all fail validation.
+- **`phoneNumberDetail` returns an object**, not a string. Older docs claim otherwise.
+- **`phoneNumberNormalizer` throws** on invalid input — wrap in `try/catch` or `isPhoneNumberValid` first.
+- **Persian/Arabic digit input is not normalized.** Pre-convert with `autoConvertDigitsToEN`.
+
+## Source
+
+`src/modules/phoneNumber/` (`validator.ts`, `detail.ts`, `normalizer.ts`, `utils.ts`) · Tests: `test/phoneNumber.spec.ts`

@@ -1,14 +1,14 @@
 prepare-release:
-	npm install
-	npm lint
-	npm prettier:ci
-	npm test
-	npm build
+	bun install
+	bun run lint
+	bun run format:ci
+	bun run test
+	bun run build
 .PHONY: prepare-release
 
 build-docs:
 	npx rimraf ./docs
-	npx typedoc --options ./typedoc.js  --media ./images
+	npx typedoc
 .PHONY: build-docs
 
 publish-docs: build-docs

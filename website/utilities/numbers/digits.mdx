@@ -1,0 +1,81 @@
+---
+title: "Digit Conversion"
+description: "Convert between Persian (۰-۹), Arabic-Indic (٠-٩), and English (0-9) digit systems, plus an auto-detect helper for mixed input."
+icon: "calculator"
+---
+
+Iranian and Arabic input often arrives with three different numeral systems mixed together. These functions move between them and provide an `autoConvertDigitsToEN` helper that normalizes any input to English digits.
+
+## The three systems
+
+| System          | Sample       | Unicode range   |
+| --------------- | ------------ | --------------- |
+| English (Latin) | `0123456789` | U+0030 – U+0039 |
+| Persian (Farsi) | `۰۱۲۳۴۵۶۷۸۹` | U+06F0 – U+06F9 |
+| Arabic-Indic    | `٠١٢٣٤٥٦٧٨٩` | U+0660 – U+0669 |
+
+These are **disjoint** ranges — Persian digits ≠ Arabic-Indic digits despite casual users using the names interchangeably.
+
+## Converters
+
+```ts
+import {
+	digitsEnToFa,
+	digitsEnToAr,
+	digitsFaToEn,
+	digitsFaToAr,
+	digitsArToEn,
+	digitsArToFa,
+	autoConvertDigitsToEN,
+} from "@persian-tools/persian-tools";
+
+digitsEnToFa("Card 1234"); // "Card ۱۲۳۴"
+digitsEnToFa(2025); // "۲۰۲۵"
+digitsFaToEn("شماره ۰۹۱۲"); // "شماره 0912"
+digitsArToFa("٧٨٩"); // "۷۸۹"
+
+// When input may have BOTH Persian and Arabic digits — most real user input
+autoConvertDigitsToEN("تماس ۰۹۱۲ یا ٠٩١٣"); // "تماس 0912 یا 0913"
+```
+
+`autoConvertDigitsToEN` is the right default when ingesting unknown user input (form field, copy-paste, OCR).
+
+## Input rules and errors
+
+- `digitsEnToFa` / `digitsEnToAr` accept `string | number`. Anything else throws `TypeError("PersianTools: digitsEnToFa - The input must be string or number")` (and similarly for `digitsEnToAr`).
+- `digitsFaToEn`, `digitsFaToAr`, `digitsArToEn`, `digitsArToFa` accept `string`. Anything else throws `TypeError("PersianTools: <fn> - The input must be string")`.
+- `autoConvertDigitsToEN` passes falsy input through as-is (no throw).
+
+## Exported constants
+
+```ts
+import { enNums, faNums, arNums, enDigitsRegex, faDigitsRegex, arDigitsRegex } from "@persian-tools/persian-tools";
+
+enNums; // ["0", "1", ..., "9"]
+faNums; // ["۰", "۱", ..., "۹"]
+arNums; // ["٠", "١", ..., "٩"]
+
+enDigitsRegex; // /[0-9]/g
+faDigitsRegex; // /[۰۱۲۳۴۵۶۷۸۹]/g
+arDigitsRegex; // /[٠١٢٣٤٥٦٧٨٩]/g
+```
+
+Use these when building larger custom regexes — don't re-declare the character classes inline.
+
+## Types
+
+```ts
+import type { DigitsConverter } from "@persian-tools/persian-tools";
+
+type DigitsConverter<I = string, O = string> = (value: I) => O;
+```
+
+## Pitfalls
+
+- **The strict converters throw** on `null` / `undefined` / wrong types — they do NOT gracefully return `""`. Wrap in `try/catch` or guard upstream.
+- **`digitsFaToEn` leaves Arabic digits untouched.** Use `autoConvertDigitsToEN` for mixed input.
+- **Hand-rolling with `String.fromCharCode` math** is fragile — the Persian and Arabic ranges sit at different offsets. Use these functions.
+
+## Source
+
+`src/modules/digits/` (`converters/`, `digits.constants.ts`) · Tests: `test/digits.spec.ts`

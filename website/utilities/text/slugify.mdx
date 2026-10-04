@@ -1,0 +1,71 @@
+---
+title: "Slugify"
+description: "Generate URL-safe slugs from Persian text, with options for separator, max length, custom replacements, and Persian-digit handling."
+icon: "link"
+---
+
+`slugify` turns a Persian string into a URL-safe slug. Companion helpers (`createSlug`, `slugifyWithNumbers`, `slugifySimple`) are thin wrappers around the same engine.
+
+## Functions
+
+### `slugify(text, options?)`
+
+```ts
+import { slugify } from "@persian-tools/persian-tools";
+
+slugify("سلام دنیا"); // "سلام-دنیا"
+slugify("چگونه برنامه‌نویسی یاد بگیریم؟"); // "چگونه-برنامه-نویسی-یاد-بگیریم"
+slugify("Hello سلام 2024"); // "hello-سلام-2024"
+```
+
+```ts
+interface SlugifyOptions {
+	separator?: string; // default "-"
+	lowercase?: boolean; // default true (Latin only)
+	removeRepeatedSeparators?: boolean; // default true
+	maxLength?: number; // truncate after slug build
+	preserveNumbers?: boolean; // default true
+	customReplacements?: Record<string, string>;
+}
+```
+
+### With options
+
+```ts
+slugify("سلام دنیا", { separator: "_" }); // "سلام_دنیا"
+slugify("سلام دنیا", { maxLength: 8 }); // "سلام-دن"
+slugify("سلام دنیا", { lowercase: false }); // doesn't lowercase Latin
+slugify("سال ۱۴۰۰", { preserveNumbers: true }); // "سال-۱۴۰۰"
+```
+
+### Convenience exports
+
+```ts
+import { createSlug, slugifyWithNumbers, slugifySimple } from "@persian-tools/persian-tools";
+
+createSlug("مقاله جدید"); // "مقاله-جدید"
+createSlug("مقاله جدید", "_"); // "مقاله_جدید"
+slugifyWithNumbers("سال ۱۴۰۰"); // keeps digits
+slugifySimple("تست ساده"); // bare-bones, no options
+```
+
+## What `slugify` does internally
+
+1. Validate input is a non-empty string (otherwise throws).
+2. Normalize Arabic-script characters → Persian via `toPersianChars`.
+3. Apply `SLUG_REPLACEMENTS` (e.g. `آ → ا`, `ة → ه`, strip Arabic diacritics).
+4. Apply `PUNCTUATION_REPLACEMENTS` (strip `؟ ، « »` etc.; convert Arabic-Indic digits to English).
+5. Apply any `customReplacements`.
+6. Collapse whitespace to `separator`, optionally dedupe consecutive separators, optionally truncate to `maxLength`.
+
+## Pitfalls
+
+- **Throws on empty string.** Pre-check `text.trim().length > 0`.
+- **`lowercase: true` affects only Latin** — Persian has no case.
+- **`preserveNumbers: true` keeps Persian digits**, which browsers handle but some legacy servers may reject. For pure-ASCII URLs, set `preserveNumbers: false` AND `digitsFaToEn` upstream.
+- **`maxLength` truncates after slug building**, possibly leaving a trailing separator — trim it yourself if it matters.
+- **Custom replacements run after defaults** and can override punctuation handling.
+
+## Source
+
+`src/modules/slugify/index.ts` · Tests: `test/slugify.spec.ts`

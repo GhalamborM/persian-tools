@@ -1,0 +1,65 @@
+---
+title: "Place by National ID"
+description: "Look up the registering city and province for an Iranian National ID by its 3-digit prefix."
+icon: "map-pin"
+---
+
+`getPlaceByIranNationalId` resolves the leading 3 digits of an Iranian National ID to the registering city and parent province.
+
+## Function
+
+```ts
+getPlaceByIranNationalId(nationalId?: string): IPlaceByNationalId | null | undefined
+```
+
+```ts
+import { getPlaceByIranNationalId } from "@persian-tools/persian-tools";
+
+getPlaceByIranNationalId("0084575948");
+// { codes: [...], city: "تهران مرکزی", province: "تهران" }
+
+getPlaceByIranNationalId("0000000000"); // null  — prefix "000" not in the dataset
+getPlaceByIranNationalId(undefined); // undefined
+getPlaceByIranNationalId(""); // undefined
+```
+
+## Return type
+
+```ts
+interface IPlaceByNationalId {
+	codes: number[] | string[]; // all 3-digit codes mapped to this city
+	city: string;
+	province: string; // may be "unknown" if the parent code is missing
+}
+```
+
+Triple-state return:
+
+| Return               | Meaning                               |
+| -------------------- | ------------------------------------- |
+| `IPlaceByNationalId` | Lookup succeeded                      |
+| `null`               | Ran lookup, prefix not in the dataset |
+| `undefined`          | Falsy input — no lookup attempted     |
+
+Related types `IProvince` and `INationalId` are also exported.
+
+## This function does NOT validate the ID
+
+The leading 3 digits are looked up directly. A nonsense ID like `"1234567890"` (which fails `verifyIranianNationalId`) may still return a valid place if `"123"` is in the dataset. Pair with the validator if you need both:
+
+```ts
+import { verifyIranianNationalId, getPlaceByIranNationalId } from "@persian-tools/persian-tools";
+
+const safeLookup = (id: string) => (verifyIranianNationalId(id) ? getPlaceByIranNationalId(id) : null);
+```
+
+## Pitfalls
+
+- **No checksum validation here.** Use `verifyIranianNationalId` upstream if validity matters.
+- **No Persian/Arabic digit normalization.** Persian-digit input (`"۰۰۸۴۵۷۵۹۴۸"`) won't match the English-keyed dataset → `null`. Pre-convert with `autoConvertDigitsToEN`.
+- **Input length must be exactly 10.** Other lengths short-circuit to `undefined`.
+- **`province === "unknown"` is a real return** (not an error) — it means the prefix matched a city whose parent code isn't in the provinces table. Surface gracefully.
+
+## Source
+
+`src/modules/getPlaceByIranNationalId/index.ts`, `nationalId.skip.ts`, `provincesCodes.skip.ts` · Tests: `test/getPlaceByIranNationalId.spec.ts`

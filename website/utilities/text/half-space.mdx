@@ -1,0 +1,67 @@
+---
+title: "Half-Space"
+description: "Insert Persian half-space (ZWNJ, U+200C) between Persian prefixes/suffixes and their stems."
+icon: "minus"
+---
+
+`halfSpace` inserts the Zero-Width Non-Joiner (`‌`, U+200C, نیم‌فاصله) between Persian words and their attached prefixes/suffixes — turning `می خواهم` into the typographically correct `می‌خواهم`.
+
+## Function
+
+```ts
+halfSpace(persianText: string): string
+```
+
+```ts
+import { halfSpace } from "@persian-tools/persian-tools";
+
+halfSpace("می خواهم بروم"); // "می‌خواهم بروم"
+halfSpace("کتاب ها"); // "کتاب‌ها"
+halfSpace("بزرگ ترین"); // "بزرگ‌ترین"
+halfSpace("نمی توانم"); // "نمی‌توانم"
+```
+
+> The library exports only `halfSpace`. There is no `addHalfSpaceChar` or `removeHalfSpaceChar`.
+
+## What it does
+
+The input is tokenised by whitespace; consecutive spaces are first collapsed. For each pair of adjacent tokens, three rule families are tried (in priority order):
+
+1. **Compound rules** — comparative/superlative formation (`بزرگ تر` → `بزرگ‌تر`, `بزرگ ترین` → `بزرگ‌ترین`).
+2. **Suffix rules** — common plural / possessive endings (`کتاب ها` → `کتاب‌ها`, `خانه ام` → `خانه‌ام`).
+3. **Prefix rules** — modal/verbal prefixes (`می خواهم` → `می‌خواهم`, `نمی توانم` → `نمی‌توانم`).
+
+If no rule fires for a pair, the space stays as-is.
+
+## What it does NOT do
+
+- **Remove** existing ZWNJ — `halfSpace` only inserts. To strip ZWNJ, do `s.replace(/‌/g, " ")` in your own code.
+- **Validate** Persian-ness — non-Persian tokens pass through unchanged.
+- **Fix Arabic-keyboard input** — run `toPersianChars` or `autoArabicToPersian` first so the rule tables (which key off Persian code points) actually match.
+- **Operate inside a single word with no space** — only space-separated tokens are processed.
+
+## Recommended pipeline
+
+```ts
+import { halfSpace, autoArabicToPersian, autoConvertDigitsToEN } from "@persian-tools/persian-tools";
+
+const polish = (s: string) => halfSpace(autoArabicToPersian(autoConvertDigitsToEN(s)));
+```
+
+## Why ZWNJ matters
+
+| Form                    | Issue                                           |
+| ----------------------- | ----------------------------------------------- |
+| `می خواهم` (full space) | reads as two separate words                     |
+| `میخواهم` (no space)    | glyphs join visually, unreadable                |
+| `می‌خواهم` (ZWNJ)       | correct: visually separate, treated as one word |
+
+## Pitfalls
+
+- The rules are **conservative** — they don't try to repair pre-existing wrong ZWNJ usage.
+- Stripping whitespace with `replace(/\s/g, "")` may or may not consume ZWNJ depending on the JS engine — be explicit with `‌`.
+- For multi-MB documents, chunk the input by paragraph; tokenisation is O(n) per chunk.
+
+## Source
+
+`src/modules/halfSpace/index.ts`, `src/modules/halfSpace/utils.ts` · Tests: `test/halfSpace.spec.ts`

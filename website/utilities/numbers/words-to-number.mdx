@@ -1,0 +1,87 @@
+---
+title: "Words to Number"
+description: "Parse Persian number words into a number, with optional fuzzy typo correction and configurable output digit system."
+icon: "spell-check"
+---
+
+`wordsToNumber` parses Persian number words (e.g. `"سه هزار دویست و دوازده"`) into a number, with optional fuzzy matching and a choice of output digit system.
+
+## Function
+
+```ts
+function wordsToNumber(words: string, config?: WordsToNumberOptions): string | number;
+
+interface WordsToNumberOptions {
+	digits?: "en" | "fa" | "ar"; // output digit system (default "en")
+	addCommas?: boolean; // format result with thousands commas
+	fuzzy?: boolean; // typo correction
+	autoConvertDigitsToEn?: boolean; // default true
+	autoConvertArabicCharsToPersian?: boolean; // default true
+}
+```
+
+Return type narrowed by overloads:
+
+- `addCommas: true` → `string`
+- `digits: "fa" | "ar"` → `string`
+- otherwise → `number`
+- falsy input → `""` (string)
+
+## Basic usage
+
+```ts
+import { wordsToNumber } from "@persian-tools/persian-tools";
+
+wordsToNumber("سه هزار دویست و دوازده"); // 3212
+wordsToNumber("دوازده هزار"); // 12000
+wordsToNumber("منفی یک میلیون"); // -1000000
+wordsToNumber(""); // ""
+```
+
+## Output formatting
+
+```ts
+wordsToNumber("دوازده هزار", { addCommas: true }); // "12,000"
+wordsToNumber("دوازده هزار", { digits: "fa" }); // "۱۲۰۰۰"
+wordsToNumber("دوازده هزار", { digits: "ar" }); // "١٢٠٠٠"
+wordsToNumber("دوازده هزار", { digits: "fa", addCommas: true }); // "۱۲,۰۰۰"
+```
+
+> `digits` accepts `"en" | "fa" | "ar"` — not `"persian" / "english" / "both"`.
+
+## Fuzzy mode
+
+```ts
+wordsToNumber("یگصد و بنجاه هزار", { fuzzy: true }); // 150000
+```
+
+Enables typo correction via a curated `TYPO_LIST` plus Levenshtein matching against the vocabulary. Slower; use for voice/OCR input, skip for structured input.
+
+## Auto-normalization
+
+- `autoConvertDigitsToEn: true` (default) — `"۱۲ هزار"` and `"١٢ هزار"` both work.
+- `autoConvertArabicCharsToPersian: true` (default) — `"یكصد"` (Arabic kaf) is corrected before lookup.
+
+Disable these only if your upstream pipeline already normalizes.
+
+## Silent skipping
+
+Unknown tokens are **silently skipped** rather than treated as errors:
+
+```ts
+wordsToNumber("یک هزار ناقص"); // 1000  — "ناقص" is unknown and ignored
+wordsToNumber("نامعلوم"); // 0     — no recognizable tokens
+```
+
+For strict validation, round-trip through `numberToWords` and compare.
+
+## Pitfalls
+
+- **`digits` enum**: `"en" | "fa" | "ar"`. Older docs use `"persian" | "english" | "both"` — wrong.
+- **Falsy input returns `""` (string)**, not `null` or `0`. Guard with a truthy check.
+- **No `null` returns for unrecognized input.** Tokens are silently skipped — see "Silent skipping" above.
+- **Return type depends on options.** Use the overloads; cast at call sites that mix configurations.
+
+## Source
+
+`src/modules/wordsToNumber/index.ts`, `constants.ts`, `fuzzy.ts` · Tests: `test/wordsToNumber-fuzzy.spec.ts`

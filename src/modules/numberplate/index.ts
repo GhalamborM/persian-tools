@@ -1,5 +1,7 @@
 import { plateDataset } from "./codes.skip";
 import { isPlateNumberValid, normalizePlate } from "./helpers";
+// Errors
+import { PersianToolsError } from "../../helpers";
 // Types
 import type {
 	NormalizedPlate,
@@ -14,12 +16,16 @@ import type {
 } from "./types.skip";
 
 /**
- * Get plate info and validation
+ * **getNumberPlateInfo**:
+ * - Normalizes the input plate.
+ * - Gets the plate info.
+ * - Checks if the plate is valid.
+ * - Returns the plate info and validation status.
  *
  * @param plate  An object containing the number and char value or a string.
  * @return  An object containing plate and validation info.
  */
-export default function plate(plate: PlateOptions): PlateResult {
+export function getNumberPlateInfo(plate: PlateOptions): PlateResult {
 	const normalizedPlate = normalizePlate(plate);
 	const info = getPlateInfo(normalizedPlate);
 	const isValid = isPlateValid(info, normalizedPlate.numbers);
@@ -36,7 +42,7 @@ export function getPlateInfo(plate: NormalizedPlate): PlateResultApi {
 }
 
 export function isPlateValid(plateInfo: PlateResultApi, plateNumber: string): boolean {
-	// 1. no zeros and chars, [1-9] allowed
+	// 1. no zero and chars, [1-9] allowed
 	if (!isPlateNumberValid(plateNumber)) {
 		return false;
 	}
@@ -47,11 +53,7 @@ export function isPlateValid(plateInfo: PlateResultApi, plateNumber: string): bo
 	}
 
 	// 3. province exist
-	if (!plateInfo?.province) {
-		return false;
-	}
-
-	return true;
+	return !!plateInfo?.province;
 }
 
 export function getPlateHandler(plate: NormalizedPlate): (plate: NormalizedPlate) => PlateResultApi {
@@ -61,7 +63,7 @@ export function getPlateHandler(plate: NormalizedPlate): (plate: NormalizedPlate
 	} else if (plate.numbers?.length === 8) {
 		handler = motorcycleHandler;
 	} else {
-		throw new Error("a Plate must be 7 or 8 digits long");
+		throw new PersianToolsError("Plate", `plate must be 7 or 8 digits long, but ${plate.numbers.length}`);
 	}
 
 	return handler;
@@ -112,4 +114,5 @@ export function motorcycleHandler(plate: NormalizedPlate): PlateResultApi {
 	};
 }
 
-export { PlateOptions, PlateResult, PlateApi, PlateResultApi, PlateResultApiTypeString, PlateTypes };
+export type { PlateTypes };
+export type { PlateOptions, PlateResult, PlateApi, PlateResultApi, PlateResultApiTypeString };

@@ -1,0 +1,48 @@
+---
+title: "Legal ID"
+description: "Validate Iranian Legal IDs (شناسه ملی حقوقی) — 11-digit company identifiers with a check digit."
+icon: "building"
+---
+
+The Iranian Legal ID (شناسه ملی حقوقی) is an 11-digit identifier for companies and legal entities, with its own check-digit algorithm distinct from the personal National ID.
+
+## Function
+
+```ts
+verifyIranianLegalId(legalId: string | number): boolean | undefined
+```
+
+```ts
+import { verifyIranianLegalId } from "@persian-tools/persian-tools";
+
+verifyIranianLegalId("10380284790"); // true
+verifyIranianLegalId(10380284790); // true (number accepted)
+verifyIranianLegalId("00000000000"); // false (all zeros)
+verifyIranianLegalId(undefined as any); // undefined
+```
+
+## Algorithm
+
+1. Falsy input → `undefined`.
+2. Stringify; length must be ≥ 11.
+3. Reject if `parseInt(legalId) === 0`.
+4. Reject if the middle 6 digits (`slice(3, 9)`) are all zero.
+5. Compute check digit with coefficient vector `[29, 27, 23, 19, 17]` (cycled per period of 5):
+   ```
+   d   = digit[9] + 2
+   sum = Σ (d + digit[i]) * z[i mod 5]  for i in 0..9
+   sum = sum mod 11
+   if sum === 10, sum = 0
+   valid = digit[10] === sum
+   ```
+
+## Pitfalls
+
+- **Length check is `< 11`, not `=== 11`.** Inputs longer than 11 chars are accepted; the algorithm slices fixed indices, so longer strings can still validate. If you need strict 11-digit input, check `String(input).length === 11` separately.
+- **Persian/Arabic digit input is not normalized.** `parseInt("۱۰۳۸۰۲۸۴۷۹۰")` is `NaN`. Run `autoConvertDigitsToEN` first.
+- **Return type is `boolean | undefined`** — use `=== true`, not truthy.
+- **For personal IDs** (10 digits, different algorithm), use `verifyIranianNationalId`.
+
+## Source
+
+`src/modules/legalId/index.ts` · Tests: `test/verifyIranianLegalId.spec.ts`

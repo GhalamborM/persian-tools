@@ -1,0 +1,71 @@
+---
+title: "Persian Character Normalization"
+description: "Normalize Arabic-script characters (ي, ى, ك) and diacritics to their Persian equivalents, while preserving template segments inside {{...}}."
+icon: "wand-sparkles"
+---
+
+`toPersianChars` replaces Arabic letterforms that look identical to Persian with the Persian code points, plus normalizes Arabic diacritics. Content inside `{{...}}` template segments is preserved verbatim.
+
+## Function
+
+```ts
+toPersianChars(str: string): string
+```
+
+```ts
+import { toPersianChars } from "@persian-tools/persian-tools";
+
+toPersianChars("علي"); // "علی"
+toPersianChars("كتاب"); // "کتاب"
+toPersianChars("عبدالله بن عبدالعزیز"); // "عبدالله بن عبدالعزیز" (no change — already Persian)
+
+toPersianChars(""); // ""
+toPersianChars(null as any); // ""
+toPersianChars(undefined as any); // ""
+```
+
+## What it normalizes
+
+| Input | Output | Codepoint shift |
+| ----- | ------ | --------------- |
+| `ي`   | `ی`    | U+064A → U+06CC |
+| `ى`   | `ی`    | U+0649 → U+06CC |
+| `ك`   | `ک`    | U+0643 → U+06A9 |
+
+Plus diacritics (`ً ٌ ٍ َ ُ ِ ّ ْ`) and Arabic punctuation (`٫`, `٬`) — see `src/modules/toPersianChars/index.ts` for the full table.
+
+## What it does NOT do
+
+- **No Latin → Persian.** It does **not** convert `y` → `ی`, `k` → `ک`, or `%` → `٪`.
+- **No digit conversion.** It does not touch `٠١٢` (Arabic-Indic) or `123` (Latin). Use the [Digits](../numbers/digits) module for that.
+- **No whitespace / ZWNJ normalization.** Use the [Half-Space](./half-space) module for ZWNJ insertion.
+
+For a full normalization pipeline:
+
+```ts
+import { toPersianChars, autoConvertDigitsToEN, autoArabicToPersian } from "@persian-tools/persian-tools";
+
+const normalize = (s: string) => toPersianChars(autoArabicToPersian(autoConvertDigitsToEN(s))).trim();
+```
+
+## Template preservation
+
+Anything between `{{` and `}}` is preserved verbatim:
+
+```ts
+toPersianChars("كشتى ىيكى {{ARABIC|كلمه}}");
+// "کشتی یکی {{ARABIC|كلمه}}"
+// Notice: standalone words got normalized; the `كلمه` inside {{ }} kept its Arabic ك
+```
+
+The implementation extracts `{{...}}` segments into placeholders, transforms the rest, then restores the segments.
+
+## Pitfalls
+
+- **Latin and digits are untouched** — older docs claim Latin → Persian conversion. They are wrong.
+- **Running on text with intentional Arabic content** will silently change it. Wrap Arabic sections in `{{...}}` or skip the call.
+- For very large documents, each replacement rule runs O(n). Consider per-field application rather than whole-document.
+
+## Source
+
+`src/modules/toPersianChars/index.ts` · Tests: `test/toPersianChars.spec.ts`

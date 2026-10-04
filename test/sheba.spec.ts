@@ -1,4 +1,6 @@
-import { isShebaValid, getShebaInfo, shebaIso7064Mod97 } from "../src/modules/sheba";
+import { describe, it, expect } from "vitest";
+import { isShebaValid, getShebaInfo } from "../src/modules/sheba";
+import { shebaIso7064Mod97 } from "../src/modules/sheba/helpers";
 
 describe("Sheba", () => {
 	it("isShebaValid Should return true", () => {
@@ -25,6 +27,13 @@ describe("Sheba", () => {
 	});
 
 	it("getShebaInfo should works", () => {
+		expect(getShebaInfo("IR790610000000700796858044")).toEqual(
+			expect.objectContaining({
+				nickname: "shahr",
+				accountNumber: "700796858044",
+				code: "061",
+			}),
+		);
 		expect(getShebaInfo("IR820540102680020817909002")).toEqual(
 			expect.objectContaining({
 				nickname: "parsian",

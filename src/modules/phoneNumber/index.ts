@@ -1,3 +1,6 @@
-export { default as phoneNumberDetail } from "./detail";
-export { default as phoneNumberValidator } from "./validator";
-export { OperatorModel } from "./utils";
+export { phoneNumberDetail } from "./detail";
+export { isPhoneNumberValid } from "./validator";
+export { phoneNumberNormalizer } from "./normalizer";
+export { getPhoneNumberPrefix } from "./utils";
+// Types
+export type { OperatorModel } from "./utils";

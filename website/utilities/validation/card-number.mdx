@@ -1,0 +1,71 @@
+---
+title: "Card Number"
+description: "Validate Iranian bank card numbers (Luhn + BIN whitelist) and look up the issuing bank."
+icon: "credit-card"
+---
+
+Two complementary functions for working with Iranian card numbers: `verifyCardNumber` (validation) and `getBankNameFromCardNumber` (BIN-based bank lookup). For extracting card numbers from free text, see the [Extract Card Numbers](../banking/extract-card-numbers) page.
+
+## Functions
+
+### `verifyCardNumber(digits)`
+
+```ts
+import { verifyCardNumber } from "@persian-tools/persian-tools";
+
+verifyCardNumber("6037701689095443"); // true
+verifyCardNumber("6037 7016 8909 5443"); // true (whitespace stripped)
+verifyCardNumber("4111111111111111"); // false (Luhn-valid but non-Iranian BIN)
+verifyCardNumber("0000000000000000"); // false (all-zero middle blocks)
+verifyCardNumber(undefined); // undefined
+```
+
+Return type: `boolean | undefined` (returns `undefined` for falsy input).
+
+#### Two-stage algorithm
+
+1. Whitespace strip + format check: `/^\d{16}$/`.
+2. Reject if middle 10 digits (`slice(1,11)`) OR last 6 digits (`slice(10,16)`) are all zero.
+3. The 6-digit BIN must be in `iranianBankPrefixes` — non-Iranian cards are rejected even if Luhn-valid.
+4. Standard Luhn checksum.
+
+### `getBankNameFromCardNumber(digits)`
+
+```ts
+import { getBankNameFromCardNumber } from "@persian-tools/persian-tools";
+
+getBankNameFromCardNumber("6219861034529007"); // "بانک سامان"
+getBankNameFromCardNumber("603799"); // "بانک ملی ایران"
+getBankNameFromCardNumber("9999999999999999"); // null — BIN not in table
+getBankNameFromCardNumber("123"); // null — too short
+getBankNameFromCardNumber(undefined); // undefined
+```
+
+Return type: `string | null | undefined` — see [Bank Name from Card Number](../banking/bank-name) for the dedicated page.
+
+## Composition
+
+```ts
+import { autoConvertDigitsToEN, verifyCardNumber, getBankNameFromCardNumber } from "@persian-tools/persian-tools";
+
+function inspect(raw: string) {
+	const norm = autoConvertDigitsToEN(raw.trim());
+	const valid = verifyCardNumber(norm) === true;
+	return {
+		valid,
+		bank: valid ? getBankNameFromCardNumber(norm) : null,
+	};
+}
+```
+
+## Pitfalls
+
+- **Both return `undefined` on falsy input** — use `=== true` / `=== "string"`, not truthy checks.
+- **Non-Iranian Luhn-valid cards (e.g. test `4111...`) are rejected.** Intentional.
+- **Persian/Arabic digit input is not normalized** — pre-convert with `autoConvertDigitsToEN`.
+- **To extract card numbers from text**, use `extractCardNumber` (singular) from [Extract Card Numbers](../banking/extract-card-numbers). There is no `extractCardNumbers` (plural) export.
+- **Adding new BINs**: edit both the `iranianBankPrefixes` set (verifier) and the `cardBank` table (lookup) in lock-step.
+
+## Source
+
+`src/modules/verifyCardNumber/index.ts`, `src/modules/getBankNameFromCardNumber/index.ts` · Tests: `test/verifyCardNumber.spec.ts`, `test/getBankNameFromCardNumber.spec.ts`

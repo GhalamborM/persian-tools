@@ -1,0 +1,73 @@
+---
+title: "Commas"
+description: "Add thousands-separator commas to numbers, or strip them back to a number."
+icon: "comma"
+---
+
+Two complementary helpers for thousand-separator formatting.
+
+## Functions
+
+### `addCommas(input)`
+
+```ts
+import { addCommas } from "@persian-tools/persian-tools";
+
+addCommas(30000); // "30,000"
+addCommas("1234567.89"); // "1,234,567.89"
+addCommas(-2500); // "-2,500"
+addCommas("۱۲۳۴۵"); // "12,345"   (Persian digits auto-converted)
+```
+
+```ts
+addCommas(input: number | string): string
+```
+
+**Behaviour**
+
+- Accepts `number | string`. Anything else returns `""`.
+- Strings have existing commas stripped first.
+- If `isPersian(...)` recognises the input as Persian, `digitsFaToEn` is applied first.
+- The cleaned string must match `/^-?\d+(\.\d+)?$/`. Otherwise returns `""`.
+
+### `removeCommas(value)`
+
+```ts
+import { removeCommas } from "@persian-tools/persian-tools";
+
+removeCommas("1,234,567"); // 1234567
+removeCommas("30,000.5"); // 30000.5
+removeCommas("-2,500"); // -2500
+```
+
+```ts
+removeCommas(value: string): number
+```
+
+**Behaviour**
+
+- Input must be a string; otherwise throws `TypeError("PersianTools: removeCommas - The input must be string")`.
+- Strips commas (and optional whitespace after each comma) then `Number(...)`.
+- Empty string returns `0` (because `Number("") === 0`).
+- Non-numeric content returns `NaN` — check with `Number.isNaN(...)`.
+
+## Pitfalls
+
+- **`addCommas` returns `""` for unrecognised input** — silently, no throw.
+- **Arabic-Indic digits (`٠-٩`) are NOT handled.** `isPersian("٧٨")` is false, so they fall through and fail the final regex → `""`. Normalize with `digitsArToEn` or `autoConvertDigitsToEN` first.
+- **`removeCommas` returns a `number`**, not a string. For round-tripping, recompose with `addCommas`.
+- **`removeCommas` does not convert Persian/Arabic digits.** Pre-normalize.
+
+## Composition
+
+```ts
+import { addCommas, autoConvertDigitsToEN } from "@persian-tools/persian-tools";
+
+const formatPrice = (raw: string) => addCommas(autoConvertDigitsToEN(raw));
+formatPrice("۱۲۳۴۵"); // "12,345"
+formatPrice("٧٨٩"); // "789"
+```
+
+## Source
+
+`src/modules/commas/add.ts`, `src/modules/commas/remove.ts` · Tests: `test/addCommas.spec.ts`, `test/removeCommas.spec.ts`

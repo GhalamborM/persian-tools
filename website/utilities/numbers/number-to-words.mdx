@@ -1,0 +1,89 @@
+---
+title: "Number to Words"
+description: "Convert a number (integer up to Number.MAX_SAFE_INTEGER) to its Persian-words representation, with optional ordinal suffix."
+icon: "calculator"
+---
+
+`numberToWords` converts numeric values into Persian word form (`123` → `"صد و بیست و سه"`).
+
+## Function
+
+```ts
+numberToWords(
+  numberValue: number | string,
+  options?: NumberToWordsOptions,
+): string | PersianToolsTypeError
+
+interface NumberToWordsOptions {
+  ordinal?: boolean;   // append Persian ordinal suffix
+}
+```
+
+```ts
+import { numberToWords } from "@persian-tools/persian-tools";
+
+numberToWords(0); // "صفر"
+numberToWords(7); // "هفت"
+numberToWords(123); // "صد و بیست و سه"
+numberToWords(1234); // "یک هزار و دویست و سی و چهار"
+numberToWords(1_000_000); // "یک میلیون"
+numberToWords("12,345"); // "دوازده هزار و سیصد و چهل و پنج"
+numberToWords(-100); // "منفی صد"
+
+numberToWords(3, { ordinal: true }); // "سوم"
+```
+
+## Input rules
+
+- Accepts `number | string`. Strings are first run through `removeCommas`.
+- The numeric value **must be a safe integer** (`Number.isSafeInteger`).
+- Non-safe-integer input (floats, values above `Number.MAX_SAFE_INTEGER`) returns a `PersianToolsTypeError` **instance** (the function returns the error; it does not throw).
+- Negative integers work — output is prefixed with `منفی`.
+
+## Return type — union with the error
+
+```ts
+import { numberToWords, PersianToolsTypeError } from "@persian-tools/persian-tools";
+
+const result = numberToWords(userInput);
+if (result instanceof PersianToolsTypeError) {
+	console.error(result.message);
+} else {
+	console.log(result);
+}
+```
+
+The return type is `string | PersianToolsTypeError`. Don't assume it's a plain string.
+
+## Range
+
+- Min: `-Number.MAX_SAFE_INTEGER`
+- Max: `Number.MAX_SAFE_INTEGER` (≈ 9.007e15)
+- Floats: rejected.
+
+## Ordinal mode
+
+`{ ordinal: true }` runs the result through `addOrdinalSuffix`. Suffix rules:
+
+- Ends with `ی` → append ` اُم` (with leading space).
+- Ends with `سه` → strip last 2 chars, append `سوم`.
+- Otherwise → append `م`.
+
+## Pitfalls
+
+- **No `currency` or `scale` options.** Older docs reference them — they do not exist.
+- **No locale switching.** Output is always Persian words separated by `و`.
+- **Return is `string | PersianToolsTypeError`** — guard accordingly.
+- **Persian-digit string input is not auto-normalized** — `removeCommas` only handles commas. Run `autoConvertDigitsToEN` upstream if needed.
+
+## Composition
+
+```ts
+import { numberToWords, addCommas } from "@persian-tools/persian-tools";
+
+const formatInvoice = (n: number) => `${addCommas(n)} ریال (${numberToWords(n)})`;
+```
+
+## Source
+
+`src/modules/numberToWords/index.ts`, `constants.ts`, `types.ts` · Tests: `test/NumberToWords.spec.ts`

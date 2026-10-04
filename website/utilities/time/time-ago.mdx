@@ -1,0 +1,69 @@
+---
+title: "Time Ago"
+description: "Convert a Jalali date-time string into a Persian relative-time phrase (e.g. 'حدود 1 سال قبل')."
+icon: "clock"
+---
+
+`timeAgo` accepts a **Jalali** date-time **string** (e.g. `"1402/06/15 13:05:20"`) and returns a Persian relative-time phrase. For Gregorian countdowns to a future date, use [Remaining Time](./remaining-time).
+
+## Function
+
+```ts
+timeAgo(
+  datetime?: string,
+  since?: Date,
+  timeZone?: string,
+): string
+```
+
+| Parameter  | Type     | Default         | Description                                 |
+| ---------- | -------- | --------------- | ------------------------------------------- |
+| `datetime` | `string` | `""`            | Jalali date-time in `"yyyy/mm/dd hh:mm:ss"` |
+| `since`    | `Date`   | `new Date()`    | reference "now"                             |
+| `timeZone` | `string` | `"Asia/Tehran"` | IANA TZ                                     |
+
+```ts
+import { timeAgo } from "@persian-tools/persian-tools";
+
+timeAgo("1400/03/17 17:55:00"); // e.g. "حدود 4 سال قبل"
+timeAgo(); // "اکنون"
+timeAgo("1402/06/15 13:05:20", new Date("2023-09-06")); // with explicit reference
+```
+
+## Input requirements
+
+The `datetime` is **a string**, in Jalali calendar, in `"yyyy/mm/dd hh:mm:ss"` format. The library normalizes by zero-padding via `standardizeFaDateTime`, so `"1402/6/5 1:5:0"` is also accepted.
+
+- Passing a `Date` (or `number`) as the first argument throws `TypeError("PersianTools: timeAgo - The input must be a string")`.
+- A format that can't be normalized throws `TypeError("PersianTools: timeAgo - The input format must be yyyy/mm/dd hh:mm:ss")`.
+
+## Output vocabulary
+
+Persian phrases using **قبل** / **بعد** (not پیش):
+
+| Span                                  | Output                                               |
+| ------------------------------------- | ---------------------------------------------------- |
+| ~1 second                             | `"اکنون"`                                            |
+| up to a few seconds                   | `"چند ثانیه قبل"` / `"چند ثانیه بعد"`                |
+| minutes                               | `"X دقیقه قبل"` / `"X دقیقه بعد"`                    |
+| hours / days / weeks / months / years | `"X ساعت قبل"`, `"X روز قبل"`, …, `"حدود X سال قبل"` |
+
+Future dates produce `"... بعد"` phrases — the function is bidirectional.
+
+## Re-exported helpers
+
+```ts
+import { checkFormatDateTime, getTimeNow, standardizeFaDateTime } from "@persian-tools/persian-tools";
+```
+
+These are the same helpers used internally; use them when implementing custom flows on top of Jalali date strings.
+
+## Pitfalls
+
+- **Input is a Jalali STRING**, not a JS `Date` or number. Pass `new Date(...)` and it throws.
+- **Output uses قبل/بعد**, not پیش.
+- **No Gregorian → Jalali conversion** is built in. If you have a Gregorian `Date`, convert with `date-fns-jalali` or `moment-jalaali` first.
+
+## Source
+
+`src/modules/timeAgo/index.ts`, `helpers.ts`, `timestamp.ts`, `constants.ts` · Tests: `test/timeAgo.spec.ts`

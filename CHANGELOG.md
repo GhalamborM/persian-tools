@@ -2,6 +2,144 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [5.0.0-beta.0](https://github.com/persian-tools/persian-tools/compare/v4.0.4...v5.0.0-beta.0) (2025-12-07)
+
+
+### ⚠ BREAKING CHANGES
+
+* replace deprecated `substr` with `slice`, improve type safety, and enhance code readability
+* remove unbuild and use bunup and bun as package manager
+
+### Features
+
+* add comprehensive instructions for AI agents and enhance documentation ([#431](https://github.com/persian-tools/persian-tools/issues/431)) ([6e7901a](https://github.com/persian-tools/persian-tools/commit/6e7901a3ee2af0fb0c18c1404c8b5a185136e6d8))
+* add mediv0 memorial ([#425](https://github.com/persian-tools/persian-tools/issues/425)) ([9e5783a](https://github.com/persian-tools/persian-tools/commit/9e5783a5527e6d00561ff35b94f7bc0e1889888e))
+* **banksRegex:** add banks data and implement regex-based banking utilities ([1b686ce](https://github.com/persian-tools/persian-tools/commit/1b686ce605b0e9c99582d4b4654e89b3b07e6f2a))
+* **docs:** add section for extractCardNumbers and update installation methods with bun support ([8b50e52](https://github.com/persian-tools/persian-tools/commit/8b50e52b803e4093b412525bc3ad84a656fd5b1a))
+* **extractCardNumbers:** add robust extraction with type-safe overloads, context support, bank detection, validation, and performance optimizations ([7b2e75e](https://github.com/persian-tools/persian-tools/commit/7b2e75e33cf48befcc2f6888b63c9bf4a627519f))
+* **halfSpace:** refactor and modularize prefix, suffix, and compound rules into utility functions, improve handling of ZWNJ edges, and enhance test coverage ([05fb6cb](https://github.com/persian-tools/persian-tools/commit/05fb6cbade8993f88afd4bae1a7b7d37969d36bd))
+* **modules:** add moneyWordsToNumber utility ([50777c9](https://github.com/persian-tools/persian-tools/commit/50777c95736a98e783350ed677eefb09cc44c68a))
+* remove unbuild and use bunup and bun as package manager ([7801232](https://github.com/persian-tools/persian-tools/commit/7801232f6fef39afff627be2b1a38acdc6e6be0f))
+* **verifyCardNumber:** add constants for Iranian bank prefixes and test cards, improve validation logic and tests ([f4f96d0](https://github.com/persian-tools/persian-tools/commit/f4f96d08f9def47d3ed43fc232495b5ba74e89fe))
+* **wordsToNumber:** modularize typo handling with `replaceArray`, add `TYPO_PATTERN`, and improve type safety ([628e2b8](https://github.com/persian-tools/persian-tools/commit/628e2b88b2b49b9bf8ca808776686a9dea7b0027))
+
+
+* replace deprecated `substr` with `slice`, improve type safety, and enhance code readability ([c50a954](https://github.com/persian-tools/persian-tools/commit/c50a9548a416e720df1936de5a799572fbe7ac93))
+
+### [4.0.4](https://github.com/persian-tools/persian-tools/compare/v4.0.3...v4.0.4) (2025-09-30)
+
+### [4.0.3](https://github.com/persian-tools/persian-tools/compare/v4.0.2...v4.0.3) (2025-09-08)
+
+### [4.0.2](https://github.com/persian-tools/persian-tools/compare/v4.0.1...v4.0.2) (2025-09-08)
+
+### [4.0.1](https://github.com/persian-tools/persian-tools/compare/v4.0.0...v4.0.1) (2025-09-08)
+
+## [4.0.0](https://github.com/persian-tools/persian-tools/compare/v4.0.0-beta.0...v4.0.0) (2025-09-08)
+
+
+### Features
+
+* add contributors to README and .all-contributorsrc ([32c2765](https://github.com/persian-tools/persian-tools/commit/32c276554dbb91a3ee552282db62c39015ed0d38))
+* add Iranian National ID generation and validation functions ([4a11f5f](https://github.com/persian-tools/persian-tools/commit/4a11f5f1ff0fad83e7501edb067e556bcc28b365))
+* add slugify function and related utilities for Persian text ([b054146](https://github.com/persian-tools/persian-tools/commit/b054146932ce200dd8a4d182dec8a9cec332f562))
+* add text analysis module with statistics and language detection ([1bfece3](https://github.com/persian-tools/persian-tools/commit/1bfece3edfe2dd77e9c2a6bee5351a1c22b4159b))
+* enhance numberToWords ([e32892d](https://github.com/persian-tools/persian-tools/commit/e32892dcd688db506e369e252fd7f704725cc5e8))
+* update README with new utilities for Persian text processing ([25269ca](https://github.com/persian-tools/persian-tools/commit/25269ca32e4917571aaacb6d5b39c969d94c0178))
+
+
+### Bug Fixes
+
+* ensure locale independence in numberToWords function [#404](https://github.com/persian-tools/persian-tools/issues/404) ([6a04d18](https://github.com/persian-tools/persian-tools/commit/6a04d18afa5e3efeb00745e50e45626e7cde3411))
+* update banks code ([#397](https://github.com/persian-tools/persian-tools/issues/397)) ([2854648](https://github.com/persian-tools/persian-tools/commit/285464890040c9add67e39e8cd9d91c7f8fec14e))
+
+## [4.0.0-beta.0](https://github.com/persian-tools/persian-tools/compare/v3.6.0...v4.0.0-beta.0) (2025-02-08)
+
+
+### ⚠ BREAKING CHANGES
+
+* migrate to pnpm and unbuild as builder
+
+### Features
+
+* change package-manager to pnpm and upgrade deps ([8050daf](https://github.com/persian-tools/persian-tools/commit/8050daf1fb73ae715769e75981dac3ab24b01769))
+* enhance wordsToNumber functionality with new options and refactored its unit tests ([ccfa377](https://github.com/persian-tools/persian-tools/commit/ccfa377963eb0b025cac9d4af7e858f9ba604eec))
+* migrate to pnpm and unbuild as builder ([0a88116](https://github.com/persian-tools/persian-tools/commit/0a881169299346084eac1651469c793383f439c5))
+* updated regexes and remove unused codes and eslint rules ([f212862](https://github.com/persian-tools/persian-tools/commit/f212862ecf172dd4f1fe845b116c1d6d6bbaeac4))
+
+
+### Bug Fixes
+
+* typedoc wrong options due to the upgrade process ([158fe84](https://github.com/persian-tools/persian-tools/commit/158fe842da0370b723c5d8a4d9e7a4a761ba6b11))
+* **VerifyIranianNationalId:** issues [#379](https://github.com/persian-tools/persian-tools/issues/379) and enhance performance and improved test coverage ([7025d06](https://github.com/persian-tools/persian-tools/commit/7025d06cbd9a81621019c89594c2803222e0d9a1))
+
+## [3.6.0](https://github.com/persian-tools/persian-tools/compare/v3.5.2...v3.6.0) (2024-12-09)
+
+
+### Features
+
+* add google idx config ([65ed6ea](https://github.com/persian-tools/persian-tools/commit/65ed6eaa26c3f310caf3ad86f9fa7bc4a50a529a))
+* find province form coordinate module ([#361](https://github.com/persian-tools/persian-tools/issues/361)) ([e05d9c9](https://github.com/persian-tools/persian-tools/commit/e05d9c97593e575562e793d3cc2889e468763fec))
+* **PhoneNumber:** added Aptel mobile code ([#370](https://github.com/persian-tools/persian-tools/issues/370)) ([346d4f9](https://github.com/persian-tools/persian-tools/commit/346d4f9eee7d93b8b25db4f9788a796c8fe87ad2))
+* remove circular deps and minor improvements ([da2228d](https://github.com/persian-tools/persian-tools/commit/da2228d6974b8966fa81c77be9920d834142df20))
+* upgrade deps and migrate eslint to v9 ([b254769](https://github.com/persian-tools/persian-tools/commit/b2547697d097efc8d1c9cbe2b9cb3f423ece9cda))
+
+
+### Bug Fixes
+
+* **AddCommas:** regex security issue in formatter ([158deff](https://github.com/persian-tools/persian-tools/commit/158deff4923d50d10d684ac69479f7148ec4bf46))
+* irGeoJSON file name import ([#368](https://github.com/persian-tools/persian-tools/issues/368)) ([3ae8110](https://github.com/persian-tools/persian-tools/commit/3ae811018e8677034be92b353663a7528497c26f))
+* validate nationalId first 3 digits ([#354](https://github.com/persian-tools/persian-tools/issues/354)) ([ef11174](https://github.com/persian-tools/persian-tools/commit/ef1117436283c84969d84d586a6bbc64835b1ee3))
+
+### [3.5.2](https://github.com/persian-tools/persian-tools/compare/v3.5.1...v3.5.2) (2024-01-09)
+
+### [3.5.1](https://github.com/persian-tools/persian-tools/compare/v3.5.0...v3.5.1) (2023-12-29)
+
+
+### Bug Fixes
+
+* **toPersianChars:** wrong result in converting ی | reported by [#344](https://github.com/persian-tools/persian-tools/issues/344) ([4e2c6c8](https://github.com/persian-tools/persian-tools/commit/4e2c6c8392b77016eb4d89aaf5b82d456fd99a34))
+
+## [3.5.0](https://github.com/persian-tools/persian-tools/compare/v3.4.1...v3.5.0) (2023-08-05)
+
+
+### Features
+
+* implement find capital by state name module ([#223](https://github.com/persian-tools/persian-tools/issues/223)) ([742add5](https://github.com/persian-tools/persian-tools/commit/742add5d5fce8219850b9da3df0ccc1bdfcfb39a))
+
+
+### Bug Fixes
+
+* **#308:** update test verifyIranianNationalId.spec.ts ([a4a3936](https://github.com/persian-tools/persian-tools/commit/a4a3936a3ca60b5e3d9adad7f290daed70a7b709)), closes [#308](https://github.com/persian-tools/persian-tools/issues/308)
+* incorrect typings for phoneNumberDetail ([#323](https://github.com/persian-tools/persian-tools/issues/323)) ([ba66500](https://github.com/persian-tools/persian-tools/commit/ba6650061aee85ac44cdb0f6c9db9b86fd5e8f99))
+
+### [3.4.1](https://github.com/persian-tools/persian-tools/compare/v3.4.0...v3.4.1) (2022-09-19)
+
+
+### Bug Fixes
+
+* **#280:** can't accept phone number starts with 0900 ([#283](https://github.com/persian-tools/persian-tools/issues/283)) ([4a8b7d7](https://github.com/persian-tools/persian-tools/commit/4a8b7d7dcd7eae0528a06a75f8453f39293e5098)), closes [#280](https://github.com/persian-tools/persian-tools/issues/280)
+* **getBankNameFromCardNumber:** allow detecting by at least 6 nums ([#269](https://github.com/persian-tools/persian-tools/issues/269)) ([33c883e](https://github.com/persian-tools/persian-tools/commit/33c883e265f283882995da44f17286bc971ba1ff)), closes [#257](https://github.com/persian-tools/persian-tools/issues/257)
+
+## [3.4.0](https://github.com/persian-tools/persian-tools/compare/v3.3.0...v3.4.0) (2022-07-07)
+
+
+### Features
+
+* install & config the vite and remove jest ([e8c14a8](https://github.com/persian-tools/persian-tools/commit/e8c14a83f26735b5cf7f6d827539a0180cf418b0))
+
+
+### Bug Fixes
+
+* [#208](https://github.com/persian-tools/persian-tools/issues/208) isPersian replacing ه wit arabic ه ([#225](https://github.com/persian-tools/persian-tools/issues/225)) ([15bd04e](https://github.com/persian-tools/persian-tools/commit/15bd04ef483ce24f9017f2ecf86db86d566d3839))
+* **#226:** webpack failed to parse source map ([13590c2](https://github.com/persian-tools/persian-tools/commit/13590c2fb1c940542b6a599aa5dd48fb61b1c564)), closes [#226](https://github.com/persian-tools/persian-tools/issues/226)
+
+## [3.3.0](https://github.com/persian-tools/persian-tools/compare/v3.2.0...v3.3.0) (2022-05-06)
+
+
+### Features
+
+* add phone number normalizer ([#184](https://github.com/persian-tools/persian-tools/issues/184)) ([aa84fe3](https://github.com/persian-tools/persian-tools/commit/aa84fe36553c66877bec9539a396988255619a00))
+
 ## [3.2.0](https://github.com/persian-tools/persian-tools/compare/v3.1.1...v3.2.0) (2022-01-03)
 
 

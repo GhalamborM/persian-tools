@@ -1,4 +1,5 @@
 import { getPlaceByIranNationalId } from "../src";
+import { describe, it, expect } from "vitest";
 
 it("Get the city and province name by national code", () => {
 	expect(getPlaceByIranNationalId("0499370899")?.city).toEqual("شهرری");
@@ -15,6 +16,10 @@ it("Get the city and province name by national code", () => {
 	expect(getPlaceByIranNationalId("2110990147")?.city).toEqual("گرگان");
 
 	expect(getPlaceByIranNationalId("0084545943")?.city).toEqual("تهران مرکزی");
+
+	// Test for issue #413: National ID with prefix 254 should return city information
+	expect(getPlaceByIranNationalId("2540201288")?.city).toEqual("استهبان");
+	expect(getPlaceByIranNationalId("2540201288")?.province).toEqual("فارس");
 
 	expect(getPlaceByIranNationalId()).toBeUndefined();
 	expect(getPlaceByIranNationalId("008454594")).toBeNull();

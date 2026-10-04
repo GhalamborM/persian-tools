@@ -12,7 +12,7 @@ interface BillTypesModel {
 	[key: number]: BillTypes;
 }
 
-const billTypes: BillTypesModel = {
+export const billTypes: BillTypesModel = {
 	1: "آب",
 	2: "برق",
 	3: "گاز",
@@ -29,7 +29,7 @@ interface BillBarcodeModel {
 	paymentId: number;
 }
 
-interface BillResult {
+export interface BillResult {
 	// bill amount
 	amount: number;
 	// bill type
@@ -44,14 +44,14 @@ interface BillResult {
 	isValidBillPayment: boolean;
 }
 
-interface BillParams {
+export interface BillParams {
 	billId?: number;
 	paymentId?: number;
 	currency?: Currency;
 	barcode?: string;
 }
 
-class Bill {
+export class Bill {
 	private readonly barcode: string | null;
 	private readonly currency: Currency;
 	private readonly billTypes: BillTypesModel;
@@ -97,8 +97,8 @@ class Bill {
 		const $barcode = (barcode || this.barcode) as string;
 
 		return {
-			billId: Number($barcode.substr(0, 13)),
-			paymentId: Number($barcode.substr(16, 10)),
+			billId: Number($barcode.slice(0, 13)),
+			paymentId: Number($barcode.slice(16, 26)),
 		};
 	}
 
@@ -112,7 +112,7 @@ class Bill {
 		}
 		const firstControlBit = paymentId.charAt(paymentId.length - 2) + "";
 		const secondControlBit = paymentId.charAt(paymentId.length - 1) + "";
-		paymentId = paymentId.substr(0, paymentId.length - 2);
+		paymentId = paymentId.slice(0, paymentId.length - 2);
 		result =
 			this.CalTheBit(paymentId) === Number(firstControlBit) &&
 			this.CalTheBit(billId + paymentId + firstControlBit) === Number(secondControlBit);
@@ -123,12 +123,13 @@ class Bill {
 	public verificationBillId(): boolean {
 		let newBillId = `${this.billId}`;
 
+		// eslint-disable-next-line no-useless-assignment
 		let result = false;
 		if (!newBillId || newBillId.length < 6) {
 			return false;
 		}
-		const controlBit = newBillId.substr(newBillId.length - 1);
-		newBillId = newBillId.substr(0, newBillId.length - 1);
+		const controlBit = newBillId.slice(-1);
+		newBillId = newBillId.slice(0, newBillId.length - 1);
 
 		const $result = this.CalTheBit(newBillId);
 		result = $result === Number(controlBit);
@@ -176,5 +177,3 @@ class Bill {
 		};
 	}
 }
-
-export default Bill;

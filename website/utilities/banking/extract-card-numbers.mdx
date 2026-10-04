@@ -1,0 +1,135 @@
+---
+title: "Extract Card Numbers"
+description: "Extract Iranian card numbers from free-form text — Persian/Arabic digits, separators, fuzzy matching, optional validation and bank detection, large-text optimization."
+icon: "credit-card"
+---
+
+`extractCardNumber` (singular) finds Iranian card numbers inside free-form text — chat logs, OCR output, payment confirmations — with eight type-narrowing overloads based on option combinations.
+
+> The exported function is **`extractCardNumber`** (singular). There is no `extractCardNumbers` plural export, and no `extractCardNumberWithMetrics`.
+
+## Basic usage
+
+```ts
+import { extractCardNumber } from "@persian-tools/persian-tools";
+
+const text = "Cards: 6037701689095443 and 6219-8610-3452-9007";
+const cards = extractCardNumber(text, {
+	checkValidation: true,
+	detectBankNumber: true,
+});
+
+// [
+//   { index: 1, base: "6037701689095443", pure: "6037701689095443",
+//     startIndex: 7, endIndex: 23, isValid: true, bankName: "بانک کشاورزی" },
+//   { index: 2, base: "6219-8610-3452-9007", pure: "6219861034529007",
+//     startIndex: 28, endIndex: 47, isValid: true, bankName: "بانک سامان" },
+// ]
+```
+
+## Result shape
+
+Every match has at minimum:
+
+```ts
+{
+	index: number; // 1-based ordinal in this run
+	base: string; // raw matched text (may contain separators)
+	pure: string; // normalized digits-only form
+	startIndex: number; // byte offset in source
+	endIndex: number;
+}
+```
+
+Options add fields:
+
+- `checkValidation: true` → `isValid: boolean`
+- `detectBankNumber: true` → `bankName: string | null`
+- `includeContext: true` → `context: { before, after }`
+
+## Multi-format input
+
+Persian (`۰-۹`) and Arabic-Indic (`٠-٩`) digits, plus dashes / underscores / spaces, are recognized and normalized into `pure`:
+
+```ts
+extractCardNumber("کارت: ۶۰۳۷۷۰۱۶۸۹۰۹۵۴۴۳"); // pure: "6037701689095443"
+extractCardNumber("6037_7016_8909_5443"); // pure: "6037701689095443"
+```
+
+## Fuzzy matching for masked cards
+
+```ts
+extractCardNumber("My card: 6037-****-8909-5443", {
+	enableFuzzyMatching: true,
+	checkValidation: false,
+});
+```
+
+Uses `fuzzyCardNumberRegex` to tolerate `*`, `?`, and similar masking. Slower; gate by `shouldUseFuzzyMatching(text, config)` on large inputs.
+
+## Large-text optimization
+
+```ts
+extractCardNumber(hugeDocument, {
+	optimizeForLargeText: true,
+	maxResults: 10,
+});
+```
+
+Internally chunks the text via `splitTextIntoChunks` (with chunk size from `getOptimalChunkConfig`) to avoid regex backtracking across the whole document.
+
+## Context capture
+
+```ts
+extractCardNumber(text, { includeContext: true, contextLength: 20 });
+// each match: { ..., context: { before, after } }
+```
+
+Useful for UI snippets ("...در پیامک از ۶۰۳۷۷۰۱۶۸۹۰۹۵۴۴۳ خرید شد...").
+
+## Type narrowing overloads
+
+The function exposes 8 overloads:
+
+```ts
+extractCardNumber(s, { checkValidation: true, detectBankNumber: true });
+// → ExtractCardNumberComplete[]   (isValid + bankName)
+
+extractCardNumber(s, { checkValidation: true, detectBankNumber: false });
+// → ExtractCardNumberWithValidation[]
+
+extractCardNumber(s);
+// → ExtractCardNumber[]   (base shape)
+```
+
+All option/result interfaces are exported (`ExtractCardNumberOptions`, `ExtractCardNumberComplete`, `ExtractCardNumberWithBank`, etc.).
+
+## Re-exported helpers and constants
+
+```ts
+import {
+	cleanCardNumber,
+	extractContext,
+	splitTextIntoChunks,
+	quickCardNumberCheck,
+	getOptimalChunkConfig,
+	shouldUseFuzzyMatching,
+	isValidCardNumberFormat,
+	sortCardNumbersByPosition,
+	removeDuplicateCardNumbers,
+	cardNumberRegex,
+	fuzzyCardNumberRegex,
+	defaultFuzzyConfig,
+	performanceThresholds,
+} from "@persian-tools/persian-tools";
+```
+
+## Pitfalls
+
+- **No metrics function exists.** Time the call yourself if you need throughput data.
+- **`null` is not in the TS signature**, though the runtime guard returns `[]` for falsy. Pass a string.
+- **Use `pure` (not `base`)** when piping into `verifyCardNumber` / `getBankNameFromCardNumber`.
+
+## Source
+
+`src/modules/extractCardNumbers/index.ts`, `types.ts`, `utils.ts`, `constants.ts` · Tests: `test/extractCardNumber.spec.ts`

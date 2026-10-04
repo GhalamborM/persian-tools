@@ -1,0 +1,110 @@
+---
+title: "Bill"
+description: "Parse and validate Iranian utility bills (water, electricity, gas, telecom, municipal, tax, traffic fines) from a bill ID + payment ID pair or a combined barcode."
+icon: "receipt"
+---
+
+The `Bill` class wraps the official Iranian bill verification algorithm. Given a `billId + paymentId` (or a combined 26-digit `barcode`), it can validate both check digits, classify the bill type (water, electricity, …), and compute the amount in toman or rial.
+
+## Construction
+
+```ts
+import { Bill } from "@persian-tools/persian-tools";
+
+// From bill ID + payment ID (currency defaults to "toman")
+const b = new Bill({ billId: 1117753200, paymentId: 1234567890 });
+
+// With explicit currency
+const b2 = new Bill({ billId: 1117753200, paymentId: 1234567890, currency: "rial" });
+
+// From a combined barcode
+const b3 = new Bill({ barcode: "1117753200000123456789..." });
+```
+
+```ts
+interface BillParams {
+	billId?: number;
+	paymentId?: number;
+	currency?: "toman" | "rial"; // default "toman"
+	barcode?: string;
+}
+```
+
+All parameters are optional, but most methods require either `billId + paymentId` or `barcode` to do real work.
+
+## Public methods
+
+```ts
+b.getAmount(): number               // amount in chosen currency
+b.getBillType(): BillTypes          // service category
+b.getBarcode(): string              // billId + "000" + paymentId
+b.findByBarcode(barcode?: string): { billId: number; paymentId: number }
+b.verificationBillId(): boolean     // check digit on the bill ID
+b.verificationBillPayment(): boolean // check digit on the payment ID
+b.verificationBill(): boolean       // both must pass
+b.getResult(): BillResult           // everything in one object
+```
+
+## `getResult()` shape
+
+```ts
+interface BillResult {
+	amount: number;
+	type: string; // field name is `type`, NOT `billType`
+	barcode: string;
+	isValid: boolean;
+	isValidBillId: boolean;
+	isValidBillPayment: boolean;
+}
+```
+
+```ts
+const r = b.getResult();
+r.amount; // number
+r.type; // "برق" | "آب" | ... | "unknown"   ← note: `type`, not `billType`
+r.isValid; // r.isValidBillId && r.isValidBillPayment
+```
+
+## Bill type encoding
+
+The penultimate digit of the bill ID encodes the service:
+
+| Digit | `BillTypes` value                                                  |
+| ----- | ------------------------------------------------------------------ |
+| 1     | `"آب"` (water)                                                     |
+| 2     | `"برق"` (electricity)                                              |
+| 3     | `"گاز"` (gas)                                                      |
+| 4     | `"تلفن ثابت"` (landline)                                           |
+| 5     | `"تلفن همراه"` (mobile)                                            |
+| 6     | `"عوارض شهرداری"` (municipal)                                      |
+| 8     | `"سازمان مالیات"` (tax authority)                                  |
+| 9     | `"جرایم راهنمایی و رانندگی"` (traffic fines)                       |
+| other | `"unknown"` (also causes `verificationBillId()` to return `false`) |
+
+The full `BillTypes` union and the `billTypes` lookup map are exported.
+
+## Amount calculation
+
+```
+amount = parseInt(paymentId.slice(0, -5)) * (currency === "rial" ? 1000 : 100)
+```
+
+The last 5 digits of `paymentId` are control + scaling; the rest are the amount in 100s of toman or 1000s of rial. **Picking the wrong `currency` is a 10× error** — match it to your downstream domain.
+
+## Type exports
+
+```ts
+import { Bill, billTypes } from "@persian-tools/persian-tools";
+import type { BillTypes, Currency, BillParams, BillResult } from "@persian-tools/persian-tools";
+```
+
+## Pitfalls
+
+- **Result field is `type`, not `billType`.** Older docs use `billType` — those accesses return `undefined`.
+- **All constructor params are optional**, but calling `getResult()` on an empty `Bill` returns garbage (NaN amount, "unknown" type, etc.). Guard upstream.
+- **`unknown` bill type forces `verificationBillId()` to return `false`** even if math checks out — intentional.
+- **No Persian/Arabic digit normalization on the barcode** — convert first if input may contain them.
+
+## Source
+
+`src/modules/bill/index.ts` · Tests: `test/bill.spec.ts`

@@ -1,0 +1,111 @@
+---
+title: "Text Analyzer"
+description: "Full multi-dimensional analysis of Persian text — character/word counts, language ratios, readability, sentiment, keywords, style, and quality."
+icon: "chart-bar"
+---
+
+`analyzeText` runs a comprehensive analysis on a Persian string. The result is a deeply structured object: statistics, ratios, readability, language detection, sentiment, keywords, style, and editorial suggestions. Convenience helpers exist for one-shot lookups.
+
+> The main function is **`analyzeText`**, not `textAnalyzer`.
+
+## Main function
+
+### `analyzeText(text, options?)`
+
+```ts
+import { analyzeText } from "@persian-tools/persian-tools";
+
+const a = analyzeText("این یک متن فارسی است.");
+a.statistics.totalWords; // 5
+a.statistics.totalCharacters; // 20
+a.statistics.persianCharacters; // 15
+a.language.primaryLanguage; // "persian"
+a.language.confidence; // 95
+a.language.isPurePersian; // true
+a.readability.complexity; // "ساده"
+a.readability.readingTime; // 1 (minutes)
+a.readability.averageWordsPerSentence; // 5
+```
+
+The result is **deeply nested** — there is no flat `{ characters, words, lines }` shape.
+
+## Result shape
+
+```ts
+interface TextAnalysisResult {
+  originalText: string;
+  cleanedText: string;
+  statistics: TextStatistics;       // counts: chars / words / sentences / paragraphs / numbers / ...
+  ratios: TextRatios;               // persianRatio, arabicRatio, englishRatio, vowelRatio, ...
+  readability: ReadabilityMetrics;  // complexity, readingTime, avg sentence length, ...
+  language: LanguageDetection;      // primaryLanguage, confidence, isPurePersian
+  sentiment: SentimentAnalysis;     // overall sentiment + indicator hits
+  keywords: KeywordAnalysis;        // top keywords + frequency
+  style: StyleAnalysis;             // formal / informal / technical
+  suggestions: string[];
+  quality: ...;
+}
+```
+
+The individual interfaces are all exported.
+
+## Convenience helpers
+
+### `getTextSummary(text)`
+
+```ts
+import { getTextSummary } from "@persian-tools/persian-tools";
+
+getTextSummary("سلام دنیا");
+// "متن شامل 2 کلمه در 1 جمله است. زبان اصلی: فارسی (100% اطمینان). زمان مطالعه تقریبی: 1 دقیقه."
+```
+
+### `getTextComplexity(text)`
+
+```ts
+import { getTextComplexity } from "@persian-tools/persian-tools";
+
+getTextComplexity("این جمله ساده است"); // "ساده" | "متوسط" | "پیچیده"
+```
+
+### `getTextSentiment(text)`
+
+```ts
+import { getTextSentiment } from "@persian-tools/persian-tools";
+
+getTextSentiment("امروز روز خوبی بود"); // "مثبت" | "منفی" | "خنثی"
+```
+
+### `getTextKeywords(text, limit?)`
+
+```ts
+import { getTextKeywords } from "@persian-tools/persian-tools";
+
+getTextKeywords(longArticle, 5); // string[]
+```
+
+### `cleanText(text)` & `normalizeText(text)`
+
+```ts
+import { cleanText, normalizeText } from "@persian-tools/persian-tools";
+
+cleanText("سَلامٌ   123   دنیا"); // "سلام ۱۲۳ دنیا"
+normalizeText(persianText); // internal match-key normalization
+```
+
+Use `cleanText` for display polish; `normalizeText` for equality comparisons across user variations.
+
+## Performance
+
+`analyzeText` is the heaviest utility in the library — it runs ~10 sub-analyses. Debounce for real-time per-keystroke usage. For batch jobs that need only one signal, prefer the dedicated helpers.
+
+## Pitfalls
+
+- **The function is `analyzeText`**, not `textAnalyzer`.
+- **Return shape is deeply nested.** Access `.statistics.totalWords`, not `.words`.
+- **`isPurePersian: true`** requires no Arabic-specific letters and no other-language tokens; mixed posts return `false`.
+- **Sentiment is rule-based.** Acceptable for triage; do not present as fine-grained sentiment grading.
+
+## Source
+
+`src/modules/textAnalyzer/index.ts`, `constants.ts` · Tests: `test/textAnalyzer.spec.ts`

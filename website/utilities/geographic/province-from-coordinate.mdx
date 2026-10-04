@@ -1,0 +1,53 @@
+---
+title: "Province from Coordinates"
+description: "Resolve a (longitude, latitude) pair to the Iranian province it falls inside, with Persian and English names."
+icon: "map"
+---
+
+`findProvinceFromCoordinate` runs point-in-polygon containment against Iran's province boundaries (from a GeoJSON dataset) and returns the matching province's Persian and English names.
+
+## Function
+
+```ts
+findProvinceFromCoordinate(pointToCheck: {
+  longitude: number;
+  latitude: number;
+}): { fa: string; en: string }
+```
+
+```ts
+import { findProvinceFromCoordinate } from "@persian-tools/persian-tools";
+
+findProvinceFromCoordinate({ longitude: 51.42, latitude: 35.69 });
+// { fa: "تهران", en: "Tehran" }
+```
+
+## Behaviour
+
+1. Iterate the polygons (one per province, from `irGeoJSON.ts`).
+2. Run a horizontal ray-cast point-in-polygon test.
+3. Return `{ fa, en }` for the first match.
+4. If no polygon contains the point, **throw** `PersianToolsError("findProvinceFromCoordinate", "no province found")`.
+
+> Return type is the **object** `{ fa, en }` — not a string. Wrap in `try/catch` for graceful fallback when the coordinate is outside Iran.
+
+## Pitfalls
+
+- **Throws** on out-of-Iran coordinates.
+- **Coordinate order is `{ longitude, latitude }`** (object form), not the GeoJSON `[lng, lat]` array.
+- **The dataset is approximate.** Near administrative borders, expect occasional misclassification.
+- **Don't expect a bare string** — index into `.fa` or `.en`.
+
+## Composition
+
+```ts
+import { findProvinceFromCoordinate, findCapitalByProvince } from "@persian-tools/persian-tools";
+
+const point = { longitude: 51.42, latitude: 35.69 };
+const province = findProvinceFromCoordinate(point);
+const capital = findCapitalByProvince(province.fa);
+```
+
+## Source
+
+`src/modules/findProvinceFromCoordinate/index.ts`, `irGeoJSON.ts` · Tests: `test/findProvinceFromCoordinate.spec.ts`

@@ -1,0 +1,80 @@
+---
+title: "Ordinal Suffix"
+description: "Add Persian ordinal suffix to a Persian word, or strip it back to the cardinal form."
+icon: "list-ordered"
+---
+
+Two complementary helpers for Persian ordinals — `addOrdinalSuffix` (cardinal → ordinal) and `removeOrdinalSuffix` (ordinal → cardinal). Both operate on already-Persian word forms; for numeric → words conversion, use [Number to Words](./number-to-words) which can apply the ordinal automatically.
+
+## Functions
+
+### `addOrdinalSuffix(number)`
+
+```ts
+addOrdinalSuffix(number?: string): string
+```
+
+```ts
+import { addOrdinalSuffix } from "@persian-tools/persian-tools";
+
+addOrdinalSuffix("سه"); // "سوم"
+addOrdinalSuffix("دو"); // "دوم"
+addOrdinalSuffix("پنج"); // "پنجم"
+addOrdinalSuffix("سی و سه"); // "سی و سوم"
+addOrdinalSuffix("یکصد"); // "یکصدم"
+```
+
+#### Rules (applied in order)
+
+1. Ends with `ی` → append ` اُم` (leading space + standalone `اُم`).
+2. Ends with `سه` → strip last 2 chars, append `سوم`.
+3. Otherwise → append `م`.
+
+#### Input
+
+- Must be a **string**. Anything else throws `TypeError("PersianTools: addOrdinalSuffix - The input must be string")`.
+- `""` does NOT throw — it falls through rule 3 and returns `"م"`. Validate non-emptiness upstream if needed.
+
+### `removeOrdinalSuffix(word)`
+
+```ts
+removeOrdinalSuffix(word: string): string
+```
+
+```ts
+import { removeOrdinalSuffix } from "@persian-tools/persian-tools";
+
+removeOrdinalSuffix("سوم"); // "سه"
+removeOrdinalSuffix("یازدهم"); // "یازده"
+removeOrdinalSuffix("بیستم"); // "بیست"
+removeOrdinalSuffix("سیزدهمین"); // "سیزده"
+removeOrdinalSuffix("سه هزارم"); // "سه هزار"
+removeOrdinalSuffix("چهاردهمین"); // "چهارده"
+```
+
+#### Behaviour
+
+1. Falsy input is **returned as-is** (no throw, no `""` coercion).
+2. Generic suffixes are removed: `مین`, `ام`, ` اُم`.
+3. A table of irregular forms is applied (longest matches first) — e.g. `سوم → سه`, `یازدهم → یازده`, `دوازدهم → دوازده`.
+
+## Pitfalls
+
+- **`addOrdinalSuffix("")` returns `"م"`** (a single character), not `""`. Validate upstream.
+- **`addOrdinalSuffix(null)` throws TypeError**, doesn't return `""`.
+- **`removeOrdinalSuffix(null)` returns `null` unchanged** (falsy input passes through).
+- **`اول` is not handled** by `removeOrdinalSuffix` — it returns `"اول"` unchanged (no built-in mapping to `یک`).
+- **Rule coverage is conservative.** `addOrdinalSuffix("یک")` returns `"یک اُم"` (rule 1: ends with `ی`), which is grammatical but uncommon; the colloquial `"یکم"` is not produced. Confirm against your style guide.
+
+## Composition with Number to Words
+
+```ts
+import { numberToWords } from "@persian-tools/persian-tools";
+
+numberToWords(5, { ordinal: true }); // "پنجم"
+// equivalent to addOrdinalSuffix(numberToWords(5))
+```
+
+## Source
+
+`src/modules/addOrdinalSuffix/addOrdinalSuffix.ts`, `src/modules/removeOrdinalSuffix/index.ts` · Tests: `test/addOrdinalSuffix.spec.ts`, `test/removeOrdinalSuffix.spec.ts`

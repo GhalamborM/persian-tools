@@ -1,11 +1,13 @@
+import { isString } from "../../helpers";
+
 /**
  * Add Ordinal suffix to numbers
  * @method addOrdinalSuffix
  * @param number - Number, eg: "300000"
  * @return A string of ordinated number
  */
-const addOrdinalSuffix = (number?: string): string => {
-	if (typeof number !== "string") {
+export const addOrdinalSuffix = (number?: string): string => {
+	if (!isString(number)) {
 		throw new TypeError("PersianTools: addOrdinalSuffix - The input must be string");
 	}
 
@@ -19,5 +21,3 @@ const addOrdinalSuffix = (number?: string): string => {
 
 	return number + "م";
 };
-
-export default addOrdinalSuffix;
